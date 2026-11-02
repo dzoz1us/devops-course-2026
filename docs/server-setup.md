@@ -42,3 +42,11 @@
 1. `01-clean-install` — сразу после установки ОС и обновления пакетов.
 2. `02-keys-configured` — после создания пользователя `devops` и настройки входа по ключу.
 3. `03-ssh-hardened` — после ужесточения конфигурации SSH и настройки UFW.
+
+## 8. Веб-сервер
+- Пакет: nginx
+- Конфигурация: /etc/nginx/sites-available/devops-site
+- Каталог ресурса: /var/www/devops-site (владелец devops:devops, права 755/644)
+- Сертификат: /etc/ssl/certs/devops.crt (644)
+- Ключ: /etc/ssl/private/devops.key (600, root:root)
+- Команда формирования сертификата: openssl req -x509 ...
