@@ -65,5 +65,29 @@ fi
 
 check "Права ключа TLS равны 600" "600" "$(sudo stat -c '%a' /etc/ssl/private/devops.key 2>/dev/null || echo 'нет файла')"
 
+echo "[5] Контейнеризация"
+if [[ "$(systemctl is-active docker)" == "active" ]]; then
+  echo " [OK]  Служба docker активна"
+  ((PASS++))
+else
+  echo " [FAIL] Служба docker неактивна"
+  ((FAIL++))
+fi
+
+DB_HEALTH=$(docker inspect -f '{{.State.Health.Status}}' app-db-1 2>/dev/null || echo "not_found")
+check "Контейнер БД healthy" "healthy" "$DB_HEALTH"
+
+# Проверка, что порты не слушают на 0.0.0.0 (только на 127.0.0.1)
+LISTENING_PORTS=$(ss -tln | grep -E ':(5000|5432)\b' | grep -v '127.0.0.1' || true)
+if [[ -z "$LISTENING_PORTS" ]]; then
+  echo " [OK]  Порты 5000 и 5432 доступны только локально"
+  ((PASS++))
+else
+  echo " [FAIL] Порты доступны извне! $LISTENING_PORTS"
+  ((FAIL++))
+fi
+
+check "Права файла .env равны 600" "600" "$(stat -c '%a' ~/app/.env 2>/dev/null || echo 'нет файла')"
+
 echo "Пройдено: $PASS, не пройдено: $FAIL"
 [[ $FAIL -eq 0 ]] && exit 0 || exit 1
